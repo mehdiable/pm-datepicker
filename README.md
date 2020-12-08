@@ -6,7 +6,7 @@ Version : 1.0.0
 
 Free License To Use, Debug & Add Features
 
-    https://peetup.com
+Site : https://peetup.com
 
 Use http://www.fourmilab.ch/documents/calendar
 
