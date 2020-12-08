@@ -72,3 +72,4 @@ Todo :
      * Max date
      * Disable dates
      * Result formats
+     * Load Datepicker in side of the btn
