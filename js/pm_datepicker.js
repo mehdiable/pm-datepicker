@@ -1,4 +1,4 @@
-/*
+/**
  * @todo can select day? if disable day (filters)
  * @todo filters :
  *			Bind every input on initBinding
@@ -13,10 +13,9 @@
  * Datepicker
  * Free License To Use, Debug & Add Features but you can't remove/change author name/email from this js file
  * Created at Oct 31, 2016, 5:43:48 PM
- *
- * @author Mehdi Mohammadnejad <mohammadnejad.job@gmail.com>
- * @version 1.0.0
- * @see Programmers Meetup at https://peetup.com
+ * @author Mehdi Mohammadnejad <m.mohammadnejad@peetup.com>
+ * @version 1.0.0.0
+ * @see Programmers Meetup at http://peetup.com
  */
 (pmDatepicker = {
 	className: 'pmdp',
@@ -30,7 +29,7 @@
 	 * Must be gregorian datetime
 	 * Format can be one of bellow: (i = minute)
 	 * minimum : "yyyy/mm", etc: "2016/01"
-	 * maximum : "yyyy/mm/dd hh:ii", etc: "2016/01/01 07:05", "2016/01/01 21:25"
+	 * maximum : "yyyy/mm/dd hh/ii", etc: "2016/01/01 07:05", "2016/01/01 21:25"
 	 * normal  : "yyyy/mm/dd", etc: "2016/01/01"
 	 * onlyHour: "yyyy/mm/dd hh", etc: "2016/01/01 20"
 	 * @type Date
@@ -90,7 +89,7 @@
 		en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 	},
 	binding: '<span class="pmdp_binding">{date}</span>',
-	btn: '<a class="datepicker" onclick="pmDatepicker.pmdpLaunch(this);">{label}{binding}</a><span class="pmdp_remove" {style} onclick="pmDatepicker.removeBinding(this);">&#xf00d;</span>',
+	btn: '<a class="datepicker" onclick="pmDatepicker.pmdpLaunch(this);" tabindex="" href="#">{label}{binding}</a><span class="pmdp_remove" {style} onclick="pmDatepicker.removeBinding(this);">&#xf00d;</span>',
 	btnLabel: '&#xf073;',
 	input: '<input class="pmdp_binding" />',
 	template: '{btn}{input}',
@@ -195,8 +194,8 @@
 	 */
 	setConf(conf) {
 		this.currentDate = (conf.currentDate !== '') ? this.setCurrentDate(conf.currentDate) : this.setCurrentDate('');
-		this.config.input = (conf.input === false) ? false : true;
-		this.config.binding = (conf.binding === false) ? false : true;
+		this.config.input = (conf.input !== false);
+		this.config.binding = (conf.binding !== false);
 		this.config.lang = (conf.lang === 'en') ? 'en' : 'fa';
 		var prev = ['&#xf053;'], next = ['&#xf054;'];
 		if (this.config.lang === 'fa') {
@@ -284,14 +283,24 @@
 
 		var prev = this.getPrevMonthDays();
 		var next = this.getNextMonthDays();
-		var m = 0, until = 0;
+		var m = 0, n = 0, until = 0;
 		if (this.config.lang === 'fa') {
-			m = (this.calendar.firstMonthWeekDay === 6) ? 0 : this.calendar.firstMonthWeekDay + 1;
 			until = prev;
-			prev++;
+
+			m = (this.calendar.firstMonthWeekDay === 5) ? -1 : this.calendar.firstMonthWeekDay + 1;
+			if (m > 5) {
+				m = 0;
+			}
+
+			n = 4 - this.calendar.lastMonthWeekDay;
+			if (n < 0) {
+				n = 7 + n;
+			}
 		} else {
 			m = this.calendar.firstMonthWeekDay - 1;
 			until = prev;
+
+			n = 6 - this.calendar.lastMonthWeekDay;
 		}
 
 		var date = [this.calendar.date[0], this.calendar.date[1]], selected = '';
@@ -321,7 +330,7 @@
 				date[0] = this.calendar.date[0];
 			}
 
-			for (i = 1; i <= next; i++) {
+			for (i = 1; i <= n; i++) {
 				date[2] = i;
 				nextDays += '<span class="next" onclick="pmDatepicker.selectDay([' + date + '], this)"">' + this.convertDigit(i) + '</span>';
 			}
@@ -421,7 +430,7 @@
 	 */
 	initBinding() {
 		if (this.actionNode.dataset.jd) {
-			var date = ((this.config.lang === 'fa') ? jd_to_persian(this.actionNode.dataset.jd) : jd_to_gregorian(this.actionNode.dataset.jd));
+			var date = ((this.config.lang === 'fa') ? jd_to_persiana(this.actionNode.dataset.jd) : jd_to_gregorian(this.actionNode.dataset.jd));
 			date = this.set2Digit(date);
 			date = date.join('/') + ' ' + ((this.actionNode.dataset.time) ? this.actionNode.dataset.time : '00:00');
 			return this.binding.replace('{date}', this.convertDigit(date));
@@ -490,7 +499,7 @@
 	setActionNodeData() {
 		this.actionNode.dataset.time = this.calendar.date[3] + ':' + this.calendar.date[4];
 		this.actionNode.dataset.jd = this.calendar.jd = (this.config.lang === 'fa') ?
-				persian_to_jd(this.calendar.date[0], this.calendar.date[1], this.calendar.date[2]) :
+				persiana_to_jd(this.calendar.date[0], this.calendar.date[1], this.calendar.date[2]) :
 				gregorian_to_jd(this.calendar.date[0], this.calendar.date[1], this.calendar.date[2]);
 	},
 	/**
@@ -552,7 +561,7 @@
 			jd = this.actionNode.dataset.jd;
 		else
 			jd = gregorian_to_jd(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, this.currentDate.getDate());
-		jDate = jd_to_persian(jd);
+		jDate = jd_to_persiana(jd);
 		jDate[3] = this.getHour();
 		jDate[4] = this.getMinute();
 		this.calendar.date = jDate;
@@ -586,7 +595,7 @@
 	jalaliMonthDays(year, month) {
 		if (month >= 1 && month <= 6)
 			return 31;
-		if (month === 12 && !leap_persian(year))
+		if (month === 12 && !leap_persiana(year))
 			return 29;
 		return 30;
 	},
@@ -597,7 +606,7 @@
 	getFirstMonthWeekDay() {
 		var jd = 0;
 		if (this.config.lang === 'fa')
-			jd = persian_to_jd(this.calendar.date[0], this.calendar.date[1], 1);
+			jd = persiana_to_jd(this.calendar.date[0], this.calendar.date[1], 1);
 		else
 			jd = gregorian_to_jd(this.calendar.date[0], this.calendar.date[1], 1);
 		return jwday(jd);
@@ -609,7 +618,7 @@
 	getLastMonthWeekDay() {
 		var jd = 0;
 		if (this.config.lang === 'fa')
-			jd = persian_to_jd(this.calendar.date[0], this.calendar.date[1], this.calendar.monthDays);
+			jd = persiana_to_jd(this.calendar.date[0], this.calendar.date[1], this.calendar.monthDays);
 		else
 			jd = gregorian_to_jd(this.calendar.date[0], this.calendar.date[1], this.calendar.monthDays);
 		return jwday(jd);
@@ -639,13 +648,29 @@
 	 * @returns {int}
 	 */
 	getNextMonthDays() {
-		var days = 0;
+		var days = 0, month = 0, year = 0;
+		year = parseInt(this.calendar.date[0]);
+		month = parseInt(this.calendar.date[1]) + 1;
+		if (month > 12) {
+			year += 1;
+			month = 1;
+		}
+
 		if (this.config.lang === 'fa') {
-			days = (this.calendar.lastMonthWeekDay === 6) ? 6 : 5 - this.calendar.lastMonthWeekDay;
-		} else
-			days = 6 - this.calendar.lastMonthWeekDay;
+			days = this.jalaliMonthDays(year, month);
+		} else {
+			days = (new Date(year, month, 0)).getDate();
+		}
 		return days;
 	},
+	// getNextMonthDays() {
+	// 	var days = 0;
+	// 	if (this.config.lang === 'fa') {
+	// 		days = (this.calendar.lastMonthWeekDay === 6) ? 6 : 5 - this.calendar.lastMonthWeekDay;
+	// 	} else
+	// 		days = 6 - this.calendar.lastMonthWeekDay;
+	// 	return days;
+	// },
 	/**
 	 * Display timepicker section
 	 */
